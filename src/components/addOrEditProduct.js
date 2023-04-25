@@ -124,7 +124,7 @@ const AddOrEditCourse = (props) => {
                                     </div>
                                     <div className="col-12 col-md-12">
                                         <div className="btn-group mb-3 mt-2 cmn-btn-grp">
-                                            <input type="submit" value={progresspercent < 1 || progresspercent === 100 ? props.currentId === "" ? "Save" : "Update" : `${progresspercent}%`} className="btn web_bg text-white btn-block mt-2 px-5" />
+                                            <input type="submit" disabled={progresspercent < 1 || progresspercent === 100 ? false : true} value={progresspercent < 1 || progresspercent === 100 ? props.currentId === "" ? "Save" : "Update" : `${progresspercent}%`} className="btn web_bg text-white btn-block mt-2 px-5" />
                                         </div>
                                     </div>
                                 </div>
