@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { storage } from '../firebase';
 import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
+import { Toast } from '../common/toast';
 
 const initialFieldValues = {
     ProductImage: '',
@@ -12,7 +13,7 @@ const initialFieldValues = {
 const AddOrEditCourse = (props) => {
 
     const [values, setValues] = useState(initialFieldValues)
-    const [imgUrl, setImgUrl] = useState(null);
+    const [imgUrl, setImgUrl] = useState("");
     const [progresspercent, setProgresspercent] = useState(0);
 
     useEffect(() => {
@@ -23,6 +24,7 @@ const AddOrEditCourse = (props) => {
             setValues({
                 ...props.productObject[props?.currentId]
             })
+            setImgUrl("")
         }
     }, [props.currentId, props.productObject])
 
@@ -43,7 +45,7 @@ const AddOrEditCourse = (props) => {
     const handleImageUpload = async e => {
         // e.preventDefault()
         const file = e.target[0].files[0]
-        // if (!file) return toast.warn("Choose a file first!");
+        if (!file) return Toast({ status: "warn", message: "Choose a file first!" })
         const storageRef = ref(storage, `files/${file?.name}`);
         const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -55,14 +57,14 @@ const AddOrEditCourse = (props) => {
             },
             (error) => {
                 console.log("error")
-                // toast.error(error);
+                Toast({ status: "error", message: error })
             },
             () => {
                 getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                     props.addOrEdit(values, downloadURL);
-                    setImgUrl(downloadURL)
                 });
-                // toast.success("File uploaded successfully!!")
+                Toast({ status: "success", message: "File uploaded successfully!!" })
+                setImgUrl("")
                 console.log("sucess")
             }
         );
@@ -85,21 +87,23 @@ const AddOrEditCourse = (props) => {
                                             <div className="flex items-center justify-center w-full">
                                                 <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-30 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                        <svg aria-hidden="true" className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                                        <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Click to upload</span></p>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+                                                        {
+                                                            imgUrl || values.ProductImage ? <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">{imgUrl?.slice(12)}</span></p> : <>
+                                                                <svg aria-hidden="true" className="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                                                <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Click to upload</span></p>
+                                                                <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+                                                            </>
+                                                        }
+                                                        {
+                                                            values.ProductImage && !imgUrl ? <img style={{ marginTop: "10px", width: "50px" }} src={values.ProductImage} alt='uploaded file' /> : ""
+                                                        }
                                                     </div>
                                                     {/* <input id="dropzone-file" type="file" className="hidden" value={values.ProductImage} onChange={handleInputChange} name="ProductImage" /> */}
-                                                    <input id="dropzone-file" className="hidden" accept="image/*" type="file" />
+                                                    <input id="dropzone-file" className="hidden" accept="image/*" type="file" value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} />
                                                 </label>
                                             </div>
                                         </div>
                                     </div>
-                                    {/* {
-                                        !imgUrl ?
-                                            <div style={{ marginTop: "10px" }}>{progresspercent}%</div>
-                                            : <img style={{ marginTop: "10px" }} src={imgUrl} alt='uploaded file' height="200px" />
-                                    } */}
                                     <div className="col-12 col-md-4">
                                         <div className="form-group">
                                             <label className="col-form-label fs-5 text-black fw-normal">Product Name</label>
@@ -118,7 +122,7 @@ const AddOrEditCourse = (props) => {
                                     <div className="col-4 mx-auto">
                                         <div className="form-group">
                                             <label className="col-form-label fs-5 text-black fw-normal">Product Price</label>
-                                            <input value={values.ProductPrice} onChange={handleInputChange} type="text" className="form-control" name="ProductPrice"
+                                            <input value={values.ProductPrice} onChange={handleInputChange} type="number" className="form-control" name="ProductPrice"
                                             />
                                         </div>
                                     </div>
